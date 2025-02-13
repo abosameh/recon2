@@ -256,6 +256,11 @@ install_tools() {
         "https://github.com/j3ssie/osmedeus.git"
         "https://github.com/rezasp/joomscan.git"
         "https://github.com/punk-security/dnsReaper.git"
+        "https://github.com/UndeadSec/SwaggerSpy.git"
+        "https://github.com/Josue87/EmailFinder.git"
+        "https://github.com/devanshbatham/OpenRedireX.git"
+        "https://github.com/eslam3kl/SQLiDetector.git"
+        "https://github.com/commixproject/commix.git"
     )
 
     for repo in "${github_repos[@]}"; do
@@ -277,6 +282,9 @@ install_tools() {
             fi
             if [ -f "joomscan.pl" ]; then
                 bash perl joomscan.pl
+            fi
+            if [ -f "setup.py" ]; then
+                bash python3 setup.py
             fi
             cd ..
         fi
@@ -410,6 +418,9 @@ go_tools=(
     "github.com/j3ssie/osmedeus"
     "github.com/edoardottt/cariddi/cmd/cariddi"
     "github.com/ferreiraklet/airixss"
+    "github.com/tomnomnom/meg"
+    "github.com/bp0lr/gauplus"
+    "github.com/takshal/freq"
 )
 
 go_binaries=(
@@ -445,6 +456,9 @@ go_binaries=(
     "osmedeus"
     "cariddi"
     "airixss"
+    "meg"
+    "gauplus"
+    "freq"
 )
 
 rust_tools=(
@@ -480,7 +494,12 @@ github_tools=(
     "$HOME/tools/GitDorker/GitDorker.py"
     "$HOME/tools/EyeWitness/Python/EyeWitness.py"
     "$HOME/tools/joomscan/joomscan.pl"
-    "$HOME/tools/punk-security/dnsReaper/main.py"
+    "$HOME/tools/dnsReaper/main.py"
+    "$HOME/tools/SwaggerSpy/swaggerspy.py"
+    "$HOME/tools/EmailFinder/setup.py"
+    "$HOME/tools/OpenRedireX/setup.sh"
+    "$HOME/tools/SQLiDetector/sqlidetector.py"
+    "$HOME/tools/commix/commix.py"
 )
 
 wordlists=(
