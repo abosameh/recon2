@@ -164,13 +164,12 @@ install_tools() {
 
     # Install system requirements
     print_status "Installing system requirements..."
-    sudo apt-get update
     sudo apt-get install -y \
         git wget curl build-essential gcc make ruby \
         python3 python3-pip libpcap-dev unzip chromium \
         nmap masscan dirb nikto wapiti whatweb \
         sqlmap wpscan joomscan skipfish \
-        ruby-dev libsqlite3-dev nodejs npm
+        ruby-dev libsqlite3-dev nodejs npm lolcat
 
     # Install Go if not present
     if ! check_command "go"; then
@@ -225,13 +224,21 @@ install_tools() {
     # Install GitHub tools
     cd "$TOOLS_DIR"
 
-    # Install findomain if not present
+    # Install findomain trufflehog telerif not present
     if ! check_command "findomain"; then
         print_status "Installing findomain..."
         curl -LO https://github.com/findomain/findomain/releases/latest/download/findomain-linux.zip
         unzip findomain-linux.zip
         chmod +x findomain
         sudo mv findomain /usr/local/bin/
+    fi
+        # Install findomain if not present
+    if ! check_command "trufflehog"; then
+        print_status "Installing trufflehog..."
+        curl -LO https://github.com/trufflesecurity/trufflehog/releases/download/v3.88.9/trufflehog_3.88.9_linux_amd64.tar.gz
+        tar -xzf trufflehog_3.88.9_linux_amd64.tar.gz
+        chmod +x trufflehog
+        sudo mv trufflehog /usr/local/bin/
     fi
     # Install teler if not present
     if ! check_command "teler"; then
@@ -261,6 +268,8 @@ install_tools() {
         "https://github.com/devanshbatham/OpenRedireX.git"
         "https://github.com/eslam3kl/SQLiDetector.git"
         "https://github.com/commixproject/commix.git"
+        "https://github.com/MandConsultingGroup/porch-pirate.git"
+        "https://github.com/abosameh/earlybird.git"
     )
 
     for repo in "${github_repos[@]}"; do
@@ -328,6 +337,25 @@ EOF
                 "directory_wordlist.txt")
                     wget https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/directory-list-2.3-medium.txt -O $wordlist
                     ;;
+                    
+                 "lfi_wordlist.txt")
+                    wget https://gist.githubusercontent.com/six2dez/a89a0c7861d49bb61a09822d272d5395/raw -O $wordlist
+                    ;;
+                 "ssti-payloads.txt")
+                    wget https://raw.githubusercontent.com/abosameh/bug/main/ssti-payloads.txt -O $wordlist
+                    ;;
+                 "xss-payloads.txt")
+                    wget https://raw.githubusercontent.com/abosameh/bug/main/xss-payloads.txt -O $wordlist
+                    ;;
+                 "Open-Redirect-payloads.txt")
+                    wget hhttps://raw.githubusercontent.com/abosameh/bug/main/Open-Redirect-payloads.txt -O $wordlist
+                    ;;
+                 "httpxpath.txt")
+                    wget https://raw.githubusercontent.com/abosameh/bug/main/httpxpath.txt -O $wordlist
+                    ;;
+                    
+                    
+                    
             esac
         fi
     done
@@ -421,6 +449,10 @@ go_tools=(
     "github.com/tomnomnom/meg"
     "github.com/bp0lr/gauplus"
     "github.com/takshal/freq"
+    "github.com/rix4uni/Gxss"
+    "github.com/projectdiscovery/shuffledns/cmd/shuffledns"
+    "github.com/projectdiscovery/alterx/cmd/alterx"
+    "github.com/projectdiscovery/tlsx/cmd/tlsx"
 )
 
 go_binaries=(
@@ -459,6 +491,10 @@ go_binaries=(
     "meg"
     "gauplus"
     "freq"
+    "Gxss"
+    "shuffledns"
+    "alterx"
+    "tlsx"
 )
 
 rust_tools=(
@@ -473,6 +509,18 @@ python_tools=(
     "wafw00f"
     "webtech"
     "semgrep"
+    "waymore"
+    "porch-pirate"
+    "dirsearch"
+    "jsbeautifier"
+    "argparse"
+    "requests_file"
+    "requests"
+    "lxml"
+    "emailfinder"
+    "json"
+    "colorama"
+    "trufflehog3"
 )
 
 system_tools=(
@@ -485,6 +533,7 @@ system_tools=(
     "sqlmap"
     "wpscan"
     "skipfish"
+    "lolcat"
 )
 
 github_tools=(
@@ -500,6 +549,8 @@ github_tools=(
     "$HOME/tools/OpenRedireX/setup.sh"
     "$HOME/tools/SQLiDetector/sqlidetector.py"
     "$HOME/tools/commix/commix.py"
+    "$HOME/tools/porch-pirate/setup.py"
+    "$HOME/tools/earlybird/install.sh"
 )
 
 wordlists=(
@@ -507,6 +558,11 @@ wordlists=(
     "$HOME/wordlists/dns_wordlist.txt"
     "$HOME/wordlists/resolvers.txt"
     "$HOME/wordlists/directory_wordlist.txt"
+    "$HOME/wordlists/lfi_wordlist.txt"
+    "$HOME/wordlists/ssti-payloads.txt"
+    "$HOME/wordlists/xss-payloads.txt"
+    "$HOME/wordlists/Open-Redirect-payloads.txt"
+    "$HOME/wordlists/httpxpath.txt"
 )
 
 config_dirs=(
