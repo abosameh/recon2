@@ -169,7 +169,7 @@ install_tools() {
         python3 python3-pip libpcap-dev unzip chromium \
         nmap masscan dirb nikto wapiti whatweb \
         sqlmap wpscan joomscan skipfish \
-        ruby-dev libsqlite3-dev nodejs npm lolcat
+        ruby-dev libsqlite3-dev nodejs npm lolcat 
 
     # Install Go if not present
     if ! check_command "go"; then
@@ -224,7 +224,7 @@ install_tools() {
     # Install GitHub tools
     cd "$TOOLS_DIR"
 
-    # Install findomain trufflehog telerif not present
+    # Install findomain, trufflehog, and teler if not present
     if ! check_command "findomain"; then
         print_status "Installing findomain..."
         curl -LO https://github.com/findomain/findomain/releases/latest/download/findomain-linux.zip
@@ -232,26 +232,18 @@ install_tools() {
         chmod +x findomain
         sudo mv findomain /usr/local/bin/
     fi
-        # Install findomain if not present
+
     if ! check_command "trufflehog"; then
         print_status "Installing trufflehog..."
-        curl -LO https://github.com/trufflesecurity/trufflehog/releases/download/v3.88.9/trufflehog_3.88.9_linux_amd64.tar.gz
-        tar -xzf trufflehog_3.88.9_linux_amd64.tar.gz
-        chmod +x trufflehog
-        sudo mv trufflehog /usr/local/bin/
+        curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
     fi
-    # Install teler if not present
+
     if ! check_command "teler"; then
         print_status "Installing teler..."
         git clone https://github.com/kitabisa/teler
         cd teler
         make build
         sudo ./bin/teler /usr/local/bin
-    fi
-    # Install trufflehog if not present
-    if ! check_command "trufflehog"; then
-        print_status "Installing trufflehog..."
-       curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
     fi
     # Install other GitHub tools
     github_repos=(
@@ -270,6 +262,12 @@ install_tools() {
         "https://github.com/commixproject/commix.git"
         "https://github.com/MandConsultingGroup/porch-pirate.git"
         "https://github.com/abosameh/earlybird.git"
+        "https://github.com/intigriti/misconfig-mapper.git"
+        "https://github.com/inc0d3/moodlescan.git"
+        "https://github.com/s0md3v/Corsy.git"
+        "https://github.com/MattKeeley/Spoofy.git"
+        "https://github.com/belane/CloudHunter.git"
+        
     )
 
     for repo in "${github_repos[@]}"; do
@@ -290,10 +288,14 @@ install_tools() {
                 bash install.sh
             fi
             if [ -f "joomscan.pl" ]; then
-                bash perl joomscan.pl
+                perl joomscan.pl
             fi
             if [ -f "setup.py" ]; then
-                bash python3 setup.py
+                python3 setup.py
+            fi
+            if [ -f "main.go" ]; then
+                go build -o misconfig-mapper
+        chmod +x ./misconfig-mapper
             fi
             cd ..
         fi
@@ -332,7 +334,7 @@ EOF
                     wget https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/dns-Jhaddix.txt -O $wordlist
                     ;;
                 "resolvers.txt")
-                    wget https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/resolvers.txt -O $wordlist
+                    wget https://raw.githubusercontent.com/abosameh/bug/refs/heads/main/resolvers.txt -O $wordlist
                     ;;
                 "directory_wordlist.txt")
                     wget https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/directory-list-2.3-medium.txt -O $wordlist
@@ -348,11 +350,12 @@ EOF
                     wget https://raw.githubusercontent.com/abosameh/bug/main/xss-payloads.txt -O $wordlist
                     ;;
                  "Open-Redirect-payloads.txt")
-                    wget hhttps://raw.githubusercontent.com/abosameh/bug/main/Open-Redirect-payloads.txt -O $wordlist
+                    wget https://raw.githubusercontent.com/abosameh/bug/refs/heads/main/Open-Redirect-payloads.txt -O $wordlist
                     ;;
                  "httpxpath.txt")
                     wget https://raw.githubusercontent.com/abosameh/bug/main/httpxpath.txt -O $wordlist
                     ;;
+                    
                     
                     
                     
@@ -453,6 +456,10 @@ go_tools=(
     "github.com/projectdiscovery/shuffledns/cmd/shuffledns"
     "github.com/projectdiscovery/alterx/cmd/alterx"
     "github.com/projectdiscovery/tlsx/cmd/tlsx"
+    "github.com/michenriksen/gitrob"
+    "github.com/Hackmanit/TInjA"
+    "github.com/edoardottt/pphack/cmd/pphack"
+    "github.com/edoardottt/Hackmanit/Web-Cache-Vulnerability-Scanner"
 )
 
 go_binaries=(
@@ -495,6 +502,10 @@ go_binaries=(
     "shuffledns"
     "alterx"
     "tlsx"
+    "gitrob"
+    "TInjA"
+    "pphack"
+    "Web-Cache-Vulnerability-Scanner"
 )
 
 rust_tools=(
@@ -521,6 +532,8 @@ python_tools=(
     "json"
     "colorama"
     "trufflehog3"
+    "aiohttp"
+    "tqdm"
 )
 
 system_tools=(
@@ -551,6 +564,11 @@ github_tools=(
     "$HOME/tools/commix/commix.py"
     "$HOME/tools/porch-pirate/setup.py"
     "$HOME/tools/earlybird/install.sh"
+    "$HOME/tools/misconfig-mapper/misconfig-mapper"
+    "$HOME/tools/moodlescan/moodlescan.py"
+     "$HOME/tools/Corsy/corsy.py"
+     "$HOME/tools/Spoofy/spoofy.py"
+     "$HOME/tools/CloudHunter/cloudhunter.py"
 )
 
 wordlists=(
@@ -563,6 +581,7 @@ wordlists=(
     "$HOME/wordlists/xss-payloads.txt"
     "$HOME/wordlists/Open-Redirect-payloads.txt"
     "$HOME/wordlists/httpxpath.txt"
+   
 )
 
 config_dirs=(
