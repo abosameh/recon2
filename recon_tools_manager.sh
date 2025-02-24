@@ -266,7 +266,7 @@ install_tools() {
         "https://github.com/inc0d3/moodlescan.git"
         "https://github.com/s0md3v/Corsy.git"
         "https://github.com/MattKeeley/Spoofy.git"
-        "https://github.com/belane/CloudHunter.git"
+        "https://github.com/abosameh/CloudHunter.git"
         
     )
 
@@ -460,6 +460,7 @@ go_tools=(
     "github.com/Hackmanit/TInjA"
     "github.com/edoardottt/pphack/cmd/pphack"
     "github.com/edoardottt/Hackmanit/Web-Cache-Vulnerability-Scanner"
+    "github.com/edoardottt/tomnomnom/gron"
 )
 
 go_binaries=(
@@ -506,6 +507,7 @@ go_binaries=(
     "TInjA"
     "pphack"
     "Web-Cache-Vulnerability-Scanner"
+    "gron"
 )
 
 rust_tools=(
