@@ -274,13 +274,14 @@ curl -s "https://api.certspotter.com/v1/issuances?domain=${target}&include_subdo
    
 
 
- echo -ne "\n${NORMAL}${BOLD}${YELLOW}[●] Filtering Alive subdomains\r"
+
 cat ${dirdomain}/subdomains/*.txt | anew -q ${dirdomain}/subdomains/subdomains.txt  
-cat $subdomains_file |sort |uniq >> ${dirdomain}/subdomains/subdomains.txt
-echo -ne "${NORMAL}${BOLD}${GREEN}[*] Subdomains Found - ${YELLOW}Total of ${NORMAL}${LRED}$(wc -l ${dirdomain}/subdomains/subdomains.txt | awk '{print $1}') ${BOLD}${YELLOW}Subdomains Found\n"
+cat $subdomains_file |sort |uniq >> ${dirdomain}/subdomains/subdomains.txt &> /dev/null
+
+echo -ne "${NORMAL}${BOLD}${GREEN}\n[*] Subdomains Found - ${YELLOW}Total of ${NORMAL}${LRED}$(wc -l ${dirdomain}/subdomains/subdomains.txt | awk '{print $1}') ${BOLD}${YELLOW}Subdomains Found\n"
+ echo -ne "\n${NORMAL}${BOLD}${YELLOW}[●] Filtering Alive subdomains\n"
 cat -s ${dirdomain}/subdomains/subdomains.txt | httpx-toolkit -p 443,80,8080,8000 -silent >> ${dirdomain}/subdomains/httpx.txt 
 cat -s ${dirdomain}/subdomains/httpx.txt | grep -Eo "https?://[^/]+\.${target}" >> ${dirdomain}/subdomains/livesubdomain.txt 
-    echo -e "\033[2A"
     echo -ne "${NORMAL}${BOLD}${GREEN}[*] Live Subdomains Found - ${YELLOW}Total of ${NORMAL}${LRED}$(wc -l ${dirdomain}/subdomains/livesubdomain.txt | awk '{print $1}') ${BOLD}${YELLOW} Live Subdomains Found\n"
 
 }
@@ -304,6 +305,31 @@ DNSx_enumeration() {
      echo -e "\033[2A"
     echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] alterx Scanned  -  ${NORMAL}[${GREEN}alterx${TICK}${NORMAL}]${TTAB} alterx Enumeration: ${LGREEN}Completed"
 }
+# Function to get IPs of subdomains
+get_ips() {
+
+echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Starting Subdomains Scanning:${NORMAL}${BOLD} Getting all IPs and Open Ports of Subdomains\r"  
+     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Getting IPs of subdomains... - ${NORMAL}[${LRED}${BLINK}Searching${NORMAL}]"
+ cat ${dirdomain}/subdomains/livesubdomain.txt | dnsx -a --resp-only --silent | anew $iptxt  &> /dev/null
+ cat ${dirdomain}/subdomains/livesubdomain.txt | dnsx -a --resp --silent | anew ${dirdomain}/info/dom_ips.txt   &> /dev/null 
+ cat ${dirdomain}/info/dom_ips.txt |sed -e 's/\x1b\[[0-9;]*m//g' -e 's/\[A\] \[\(.*\)\]/     \1/'| anew ${dirdomain}/info/domain_ips.txt   &> /dev/null 
+    echo -e "\033[2A"
+    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Getting IPs of subdomains... - ${NORMAL}[${GREEN}Searching${TICK}${NORMAL}]${TTAB} IPS Search: ${LGREEN}Completed"
+    
+    
+       
+
+ 
+      echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Getting Open Ports of subdomains... - ${NORMAL}[${LRED}${BLINK}Scaning${NORMAL}]"
+ naabu -list $iptxt -p $ports -c 150 --silent -o ${dirdomain}/info/portscan.txt &> /dev/null
+    echo -e "\033[2A"
+    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Getting Open Ports of subdomains... - ${NORMAL}[${GREEN}Scaning${TICK}${NORMAL}]${TTAB} IPS Search: ${LGREEN}Completed"
+ 
+ 
+ 
+
+    echo -ne "\n${NORMAL}${BOLD}${LGREEN}[●] Scanning Completed for IPS and Open Ports of ${NORMAL}${BOLD}${RED}$target${RED}${WHITE}\t Total: ${GREEN}$(cat ${dirdomain}/info/domain_ips.txt 2> /dev/null | wc -l )\n"  
+ }
 # Function to get all endpoints
 get_endpoints() {
     echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Starting Endpoints Scanning:${NORMAL}${BOLD} Getting all endpoints\r"
@@ -314,8 +340,8 @@ get_endpoints() {
  cat ${dirdomain}/subdomains/livesubdomain.txt | gauplus --random-agent -b eot,jpg,jpeg,gif,css,tif,tiff,png,ttf,otf,woff,woff2,ico,pdf,svg,txt -o ${dirdomain}/parameters/gauplus.txt &> /dev/null
   cat ${dirdomain}/subdomains/livesubdomain.txt | waybackurls | anew -q ${dirdomain}/parameters/waybackurls.txt &> /dev/null
 cat ${dirdomain}/subdomains/livesubdomain.txt | hakrawler | grep -Eo "https?://[^/]+\.${target}" | tee -a $dirdomain/parameters/hakrawler-urls.txt &> /dev/null
- gospider -S ${dirdomain}/subdomains/livesubdomain.txt -t 50 -c 10 -d 3 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|svg)" -o $gospider_output &> /dev/null
- cat $gospider_output/* |grep -oE 'https?://[^[:space:]]+' | anew -q ${dirdomain}/parameters/gospider.txt &> /dev/null
+
+
     cat ${dirdomain}/parameters/*.txt | sed '/\[/d' | grep $target | sort -u | urldedupe -s | anew -q ${dirdomain}/parameters/endpoints.txt &> /dev/null
     
    echo -ne "${NORMAL}${BOLD}${LGREEN}[●] Endpoints Scanning Completed for Subdomains of ${NORMAL}${BOLD}${RED}$target${RED}${WHITE}\t Total: ${GREEN}$(cat ${dirdomain}/parameters/endpoints.txt 2> /dev/null | wc -l )\n"
@@ -385,99 +411,97 @@ rm -f ${dirdomain}/info/emailfinder.txt
 echo -e "\033[2A"
 echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Getting Leaked Passwords,Emails and Usernames  -  ${NORMAL}[${GREEN}emailfinder${TICK}${NORMAL}]${TTAB} Leaks Found: ${LGREEN}$(cat ${dirdomain}/info/emails.txt 2> /dev/null | wc -l )"
 
-
-    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] WordPress Scanning  -  ${NORMAL}[${LRED}${BLINK}wpscan${NORMAL}]"
-     wpscan --url $target --random-user-agent --enumerate vp,vt,cb,dbe --output $wpscan_output &>/dev/null
+    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Check if a Domain can be Spoofed? - ${NORMAL}[${LRED}${BLINK}Spoofy${NORMAL}]"
+python3 $TOOLS_DIR/Spoofy/spoofy.py -iL $subdomains_live -o stdout |anew -q ${dirdomain}//vulnerability/spoofy.txt &> /dev/null
     echo -e "\033[2A"
-    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] WordPress Scanned  -  ${NORMAL}[${GREEN}wpscan${TICK}${NORMAL}]${TTAB} CMS WordPress Found: ${LGREEN}$(cat $wpscan_output 2> /dev/null | wc -l )"
-
-
-    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Joomla Scanning  -  ${NORMAL}[${LRED}${BLINK}joomscan${NORMAL}]"
-     joomscan --url $target --ec --random-agent --output $joomscan_output &>/dev/null
-    echo -e "\033[2A"
-    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Joomla Scanned  -  ${NORMAL}[${GREEN}joomscan${TICK}${NORMAL}]${TTAB} CMS Joomla Found: ${LGREEN}$(cat $joomscan_output 2> /dev/null | wc -l )"
-
-
-    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Drupal Scanning  -  ${NORMAL}[${LRED}${BLINK}droopescan${NORMAL}]"
-     droopescan scan drupal -u $target -t 10 -o $droopescan_output &>/dev/null
-    echo -e "\033[2A"
-    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Drupal Scanned  -  ${NORMAL}[${GREEN}droopescan${TICK}${NORMAL}]${TTAB} CMS Drupal Found: ${LGREEN}$(cat $droopescan_output 2> /dev/null | wc -l )"
-
-
+    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Check if a Domain can be Spoofed? - ${NORMAL}[${GREEN}Spoofy${TICK}${NORMAL}]${TTAB} Checking: ${LGREEN}Completed"
 
 
 	whois $target | grep 'Domain\|Registry\|Registrar\|Updated\|Creation\|Registrant\|Name Server\|DNSSEC:\|Status\|Whois Server\|Admin\|Tech' | grep -v 'the Data in VeriSign Global Registry' | tee ${dirdomain}/info/whois.txt &> /dev/null
 	
 
 	whatweb -i $subdomains_live --log-brief ${dirdomain}/info/whatweb.txt &> /dev/null
-echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Check if the Domains is running WordPress or Joomla or Drupal\n"
-websites_file="$subdomains_live" 
-CMSresult="${dirdomain}/info/CMSresult.txt"  
-if [ ! -f "$websites_file" ]; then
-    echo "Websites file not found: $websites_file"
-    exit 1
-fi
-while IFS= read -r website; do
-    html_content=$(curl -s "$website")        
-    if echo "$html_content" | grep -q -E 'wp-content|wp-includes|wordpress|WordPress|Wordpress'; then
-        cms="WordPress"
-         if ! command -v wpscan &> /dev/null; then
-            echo "wpscan is not installed. Please install it to scan WordPress sites."
-        else
-            wpscan --url "$website" >> "$CMSresult"
-            echo "wpscan scan results appended to $CMSresult"
-        fi
-    elif echo "$html_content" | grep -q -E 'Joomla|joomla.xml'; then
-        cms="Joomla"
-    elif echo "$html_content" | grep -q -E 'shopify'; then
-        cms="shopify"
-    elif echo "$html_content" | grep -q -E 'hubspot'; then
-        cms="hubspot"
-    elif echo "$html_content" | grep -q -E 'weebly'; then
-        cms="weebly"
-     elif echo "$html_content" | grep -q -E 'wix'; then
-        cms="wix"
-      elif echo "$html_content" | grep -q -E 'moodle'; then
-        cms="moodle"
-      elif echo "$html_content" | grep -q -E 'prestashop'; then
-        cms="prestashop"                   
-    elif echo "$html_content" | grep -q -E 'Drupal|core/modules|composer/Plugin'; then
-        cms="Drupal"
-    else
-        cms="Unknown"
-    fi    
-    if [ "$cms" != "Unknown" ]; then
-        echo -ne "[+]${GREEN}$website${YELLOW} ========>is running $cms\n"
-        echo -ne "$website ========>is running $cms" >> "$CMSresult"
-    else
-        echo -ne "${YELLOW}$website ${RED}Unknown\n"
-    fi    
-done < "$websites_file"
-echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Check which Server the Domains is running\r"
-Serverresult="${dirdomain}/info/Serverresult.txt"
-while IFS= read -r website; do
-    html_content=$(curl -I "$website" 2>&1 | grep -i 'server:')
-    if [ "$html_content" != "Unknown" ]; then
-echo -ne "[+]${GREEN}$website${YELLOW}   running $html_content\n"
-echo -ne "[+]${GREEN}$website${YELLOW}   running $html_content" >>"$Serverresult"
-else
-echo -ne "[+]${YELLOW}$website ${RED}Unknown."
-    fi 
-done < "$websites_file"
+	
+    echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] Check if the Domains is running WordPress or Joomla or Drupal ${NORMAL}[${LRED}${BLINK}Checking${NORMAL}]"	
+ bash $TOOLS_DIR/cms_scan.sh "$target" &> /dev/null
+    echo -e "\033[2A"
+    echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] Check if the Domains is running WordPress or Joomla or Drupal ${NORMAL}[${GREEN}Checking${TICK}${NORMAL}]${TTAB} Checking: ${LGREEN}Completed"
+#websites_file="$subdomains_live" 
+#CMSresult="${dirdomain}/info/CMSresult.txt"  
+#if [ ! -f "$websites_file" ]; then
+#    echo "Websites file not found: $websites_file"
+#    exit 1
+#fi
+#while IFS= read -r website; do
+ #   html_content=$(curl -s "$website")        
+ #   if echo "$html_content" | grep -q -E 'wp-content|wp-includes|wordpress|WordPress|Wordpress'; then
+ #       cms="WordPress"
+ #        if ! command -v wpscan &> /dev/null; then
+ #           echo "wpscan is not installed. Please install it to scan WordPress sites."
+ #       else
+ #           wpscan --url "$website" >> "$CMSresult"
+ #           echo "wpscan scan results appended to $CMSresult"
+ #       fi
+ #   elif echo "$html_content" | grep -q -E 'Joomla|joomla.xml'; then
+ #       cms="Joomla"
+  #  elif echo "$html_content" | grep -q -E 'shopify'; then
+  #      cms="shopify"
+ #   elif echo "$html_content" | grep -q -E 'hubspot'; then
+ #       cms="hubspot"
+ #   elif echo "$html_content" | grep -q -E 'weebly'; then
+ #       cms="weebly"
+ #    elif echo "$html_content" | grep -q -E 'wix'; then
+ #       cms="wix"
+ #     elif echo "$html_content" | grep -q -E 'moodle'; then
+  #      cms="moodle"
+ #     elif echo "$html_content" | grep -q -E 'prestashop'; then
+ #       cms="prestashop"                   
+#    elif echo "$html_content" | grep -q -E 'Drupal|core/modules|composer/Plugin'; then
+#        cms="Drupal"
+#    else
+#        cms="Unknown"
+#    fi    
+#    if [ "$cms" != "Unknown" ]; then
+ #       echo -ne "[+]${GREEN}$website${YELLOW} ========>is running $cms\n"
+ #       echo -ne "$website ========>is running $cms" >> "$CMSresult"
+ #   else
+ #       echo -ne "${YELLOW}$website ${RED}Unknown\n"
+#    fi    
+#done < "$websites_file"
+#echo -ne "\n${NORMAL}${BOLD}${YELLOW}[*] Check which Server the Domains is running\r"
+#Serverresult="${dirdomain}/info/Serverresult.txt"
+#while IFS= read -r website; do
+ #   html_content=$(curl -I "$website" 2>&1 | grep -i 'server:')
+#    if [ "$html_content" != "Unknown" ]; then
+#echo -ne "[+]${GREEN}$website${YELLOW}   running $html_content\n"
+#echo -ne "[+]${GREEN}$website${YELLOW}   running $html_content" >>"$Serverresult"
+#else
+#echo -ne "[+]${YELLOW}$website ${RED}Unknown."
+ #   fi 
+#done < "$websites_file"
 
 }
-# Function to get IPs of subdomains
-get_ips() {
 
- # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
-    echo "Getting IPs of subdomains..."
- cat ${dirdomain}/subdomains/livesubdomain.txt | dnsx -a --resp-only --silent | anew $iptxt  &> /dev/null
- cat ${dirdomain}/subdomains/livesubdomain.txt | dnsx -a --resp --silent | anew ${dirdomain}/info/dom_ips.txt   &> /dev/null 
- cat ${dirdomain}/info/dom_ips.txt |sed -e 's/\x1b\[[0-9;]*m//g' -e 's/\[A\] \[\(.*\)\]/     \1/'| anew ${dirdomain}/info/domain_ips.txt   &> /dev/null 
- naabu -list $iptxt -p $ports -c 150 --silent -o ${dirdomain}/info/portscan.txt    
- }
  # Function to check for vulnerabilities
 check_vulnerabilities() {
+
+echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] XSS Scanning with xss_vibes  -  ${NORMAL}[${LRED}${BLINK}Scanning${NORMAL}]"
+
+python3 $TOOLS_DIR/xss_vibes/main.py -f ${dirdomain}/parameters/xss.txt -t 10  -o ${dirdomain}/vulnerability/xss_vibes.txt 
+echo -e "\033[2A"
+echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] XSS Scanning with xss_vibes -  ${NORMAL}[${GREEN}Scanning${TICK}${NORMAL}]${TTAB} XSS Found: ${LGREEN}$(cat ${dirdomain}/vulnerability/airixss.txt 2> /dev/null | wc -l )" 
+
+
+
+
+
+echo -ne "${NORMAL}${BOLD}${YELLOW}\n[*] XSS Scanning with airixss  -  ${NORMAL}[${LRED}${BLINK}Scanning${NORMAL}]"
+
+  cat ${dirdomain}/parameters/endpoints.txt |  urldedupe -qs | bhedak '"><Svg Only=1 OnLoad=confirm(atob("Q2xvdWRmbGFyZSBYU1MgQG1fa2VsZXBjZQ=="))>' | airixss -payload "confirm(1)" | egrep -v 'Not' | tee -a ${dirdomain}/vulnerability/airixss.txt &> /dev/null
+echo -e "\033[2A"
+echo -ne "${NORMAL}${BOLD}${SORANGE}\n[*] XSS Scanning with airixss -  ${NORMAL}[${GREEN}Scanning${TICK}${NORMAL}]${TTAB} XSS Found: ${LGREEN}$(cat ${dirdomain}/vulnerability/airixss.txt 2> /dev/null | wc -l )" 
+
+
 
 
  # Add gxss scanning
@@ -529,6 +553,27 @@ cat ${dirdomain}/subdomains/livesubdomain.txt | sed 's#$#/.git/HEAD#g' | httpx -
 cat ${dirdomain}/info/Information.txt | grep -oP 'https?://[^\s]+' > ${dirdomain}/info/finalInfo.txt
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}Information disclosure${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/info/finalInfo.txt 2> /dev/null | wc -l )"
 
+
+ echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}Web Cache Vulnerability${NORMAL}]\r"
+    
+Web-Cache-Vulnerability-Scanner -u file:$subdomains_live -hw "file:/home/haco/Tools/nomore403/payloads/headers" -pw "file://home/haco/Tools/nomore403/payloads/headers" -gr -gp ${dirdomain}/vulnerability/ -ej &> /dev/null
+
+    echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}Web Cache Vulnerability${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/info/finalInfo.txt 2> /dev/null | wc -l )"
+
+
+ echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}CORS Misconfiguration${NORMAL}]\r"
+    
+python3 $TOOLS_DIR/Corsy/corsy.py -i ${dirdomain}/parameters/endpoints.txt -o ${dirdomain}/vulnerability/cors.json &> /dev/null
+
+    echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}CORS Misconfiguration${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/info/finalInfo.txt 2> /dev/null | wc -l )"
+
+ echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}Vulnerable Buckets${NORMAL}]\r"
+    
+python3 $TOOLS_DIR/CloudHunter/cloudhunter.py -p $TOOLS_DIR/CloudHunter/permutations-big.txt -r $TOOLS_DIR/CloudHunter/resolvers.txt $company | anew -q $dirdomain/vulnerability/openbuckets.txt&> /dev/null
+
+    echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}Vulnerable Buckets${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/info/finalInfo.txt 2> /dev/null | wc -l )"
+   ====== 
+
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}openreditrct${NORMAL}]\r"
 cat ${dirdomain}/parameters/redirect.txt | openredirex --keyword FUZZ -p $TOOLS_DIR/OpenRedireX/payloads.txt| grep "^http" >  ${dirdomain}/vulnerability/redirect.txt &> /dev/null
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}openreditrct${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat ${dirdomain}/vulnerability/redirect.txt 2> /dev/null | wc -l )"
@@ -551,9 +596,9 @@ cat ${dirdomain}/parameters/redirect.txt | openredirex --keyword FUZZ -p $TOOLS_
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}SQLi${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $dirdomain/vulnerability/sqli.txt 2> /dev/null | wc -l )"
     
       echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}SSTI${NORMAL}]\r"
-for url in $(cat ${dirdomain}/parameters/ssti.txt);do
-TInjA url -u $url
-done
+#for url in $(cat ${dirdomain}/parameters/ssti.txt);do
+#TInjA url -u $url
+#done
     echo -ne "${NORMAL}${BOLD}${SORANGE}[●] Vulnerabilities Scanned  -  ${NORMAL}[${GREEN}SSTI${TICK}${NORMAL}]${TTAB} Found: ${GREEN}$(cat $dirdomain/vulnerability/ssti.txt 2> /dev/null | wc -l )"
     echo -ne "${NORMAL}${BOLD}${YELLOW}\n[●] Vulnerabilities Scanning  -  ${NORMAL}[${LRED}${BLINK}Prototype${NORMAL}]\r"
 pphack -l ${dirdomain}/subdomains/livesubdomain.txt -o $prototype_file &> /dev/null
@@ -577,7 +622,7 @@ generate_report() {
     echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} Subdomains of ${RED}$target${NORMAL}\n"
     echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} Subdomains Found:${NORMAL}${BOLD}${GREEN} $(cat ${dirdomain}/subdomains/subdomains.txt 2> /dev/null | wc -l)${NORMAL}\n"
     echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} Subdomains Alive:${NORMAL}${BOLD}${GREEN} $(cat ${dirdomain}/subdomains/livesubdomain.txt 2> /dev/null | wc -l)${NORMAL}\n"
-    echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} Endpoints:${NORMAL}${BOLD}${GREEN} $(cat subdomains/endpoints.txt 2> /dev/null | wc -l)${NORMAL}\n"
+    echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} Endpoints:${NORMAL}${BOLD}${GREEN} $(cat ${dirdomain}/parameters/endpoints.txt 2> /dev/null | wc -l)${NORMAL}\n"
     echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} XSS:${NORMAL}${BOLD}${GREEN} $(cat ${dirdomain}/vulnerability/xss.txt 2> /dev/null | wc -l)${NORMAL}\n"
     echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} SSTI:${NORMAL}${BOLD}${GREEN} $(cat $dirdomain/vulnerability/ssti.txt 2> /dev/null | wc -l)${NORMAL}\n"
     echo -ne "${BOLD}${LGREEN}[+]${NORMAL}${BOLD}${WHITE} SQLi:${NORMAL}${BOLD}${GREEN} $(cat ${dirdomain}/vulnerability/sqli.txt 2> /dev/null | wc -l)${NORMAL}\n"
@@ -593,34 +638,37 @@ generate_report() {
 full_recon() {
     scan_subdomains
     DNSx_enumeration
+    get_ips
     get_endpoints
     get_info
-    get_ips
     check_vulnerabilities
     generate_report
 }
+
+
+
 # Main menu
 while true; do
     echo -ne "${GREEN}Please choose an option:${NORMAL}\n"
     echo -ne "${GREEN}#################################\n"
     echo -ne "${GREEN}1. Scan for subdomains${NORMAL}\n"
     echo -ne "${GREEN}2. DNSx enumeration${NORMAL}\n"
-    echo -ne "${GREEN}3. Get all endpoints${NORMAL}\n"
-    echo -ne "${GREEN}4. Get Info of subdomains${NORMAL}\n"
-    echo -ne "${GREEN}5. Get IPs of subdomains${NORMAL}\n"
+    echo -ne "${GREEN}3. Get IPs of subdomains${NORMAL}\n"
+    echo -ne "${GREEN}4. Get all endpoints${NORMAL}\n"
+    echo -ne "${GREEN}5. Get Info of subdomains${NORMAL}\n"
     echo -ne "${GREEN}6. Check for vulnerabilities${NORMAL}\n"
     echo -ne "${GREEN}7. Generate a full report${NORMAL}\n"
     echo -ne "${GREEN}8. Full Recon${NORMAL}\n"
     echo -ne "${GREEN}9. Exit${NORMAL}\n"
     echo -ne "${GREEN}#################################\n"
-    read -p "Enter your choice (1-8): " choice
+    read -p "Enter your choice (1-9): " choice
 
     case $choice in
         1) scan_subdomains ;;
         2) DNSx_enumeration ;;
-        3) get_endpoints ;;
-        4) get_info ;;
-        5) get_ips ;;
+        3) get_ips ;;
+        4) get_endpoints ;;
+        5) get_info ;;
         6) check_vulnerabilities ;;
         7) generate_report ;;
         8) full_recon ;;
