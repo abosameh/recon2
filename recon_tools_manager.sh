@@ -438,7 +438,6 @@ go_tools=(
     "github.com/hakluke/hakrawler"
     "github.com/ffuf/ffuf/v2"
     "github.com/OJ/gobuster/v3"
-    "github.com/jaeles-project/jaeles"
     "github.com/hahwul/dalfox/v2"
     "github.com/dwisiswant0/crlfuzz/cmd/crlfuzz"
     "github.com/d3mondev/puredns/v2"
@@ -457,11 +456,11 @@ go_tools=(
     "github.com/projectdiscovery/shuffledns/cmd/shuffledns"
     "github.com/projectdiscovery/alterx/cmd/alterx"
     "github.com/projectdiscovery/tlsx/cmd/tlsx"
-    "github.com/michenriksen/gitrob"
     "github.com/Hackmanit/TInjA"
     "github.com/edoardottt/pphack/cmd/pphack"
     "github.com/edoardottt/Hackmanit/Web-Cache-Vulnerability-Scanner"
     "github.com/edoardottt/tomnomnom/gron"
+    "github.com/dubs3c/urldedupe"
 )
 
 go_binaries=(
@@ -485,7 +484,6 @@ go_binaries=(
     "hakrawler"
     "ffuf"
     "gobuster"
-    "jaeles"
     "dalfox"
     "crlfuzz"
     "puredns"
@@ -504,11 +502,11 @@ go_binaries=(
     "shuffledns"
     "alterx"
     "tlsx"
-    "gitrob"
     "TInjA"
     "pphack"
     "Web-Cache-Vulnerability-Scanner"
     "gron"
+    "urldedupe"
 )
 
 rust_tools=(
@@ -528,7 +526,6 @@ python_tools=(
     "dirsearch"
     "jsbeautifier"
     "argparse"
-    "requests_file"
     "requests"
     "lxml"
     "emailfinder"
