@@ -267,6 +267,7 @@ install_tools() {
         "https://github.com/s0md3v/Corsy.git"
         "https://github.com/MattKeeley/Spoofy.git"
         "https://github.com/abosameh/CloudHunter.git"
+        "https://github.com/faiyazahmad07/xss_vibes.git"
         
     )
 
@@ -536,6 +537,7 @@ python_tools=(
     "trufflehog3"
     "aiohttp"
     "tqdm"
+    "bhedak"
 )
 
 system_tools=(
@@ -571,6 +573,7 @@ github_tools=(
      "$HOME/tools/Corsy/corsy.py"
      "$HOME/tools/Spoofy/spoofy.py"
      "$HOME/tools/CloudHunter/cloudhunter.py"
+     "$HOME/tools/xss_vibes/main.py"
 )
 
 wordlists=(
