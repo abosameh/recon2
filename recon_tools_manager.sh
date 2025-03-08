@@ -171,6 +171,17 @@ install_tools() {
         sqlmap wpscan joomscan skipfish \
         ruby-dev libsqlite3-dev nodejs npm lolcat 
 
+    # Install nrich
+    if ! check_command "nrich"; then
+    print_status "Installing nrich..."
+    wget https://gitlab.com/api/v4/projects/33695681/packages/generic/nrich/latest/nrich_latest_x86_64.deb
+    sudo dpkg -i nrich_latest_x86_64.deb
+    fi
+   # Install trufflehog
+    if ! check_command "trufflehog"; then
+        print_status "Installing trufflehog..."
+        curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+    fi
     # Install Go if not present
     if ! check_command "go"; then
         print_status "Installing Go..."
@@ -233,10 +244,6 @@ install_tools() {
         sudo mv findomain /usr/local/bin/
     fi
 
-    if ! check_command "trufflehog"; then
-        print_status "Installing trufflehog..."
-        curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
-    fi
 
     if ! check_command "teler"; then
         print_status "Installing teler..."
@@ -356,6 +363,9 @@ EOF
                  "httpxpath.txt")
                     wget https://raw.githubusercontent.com/abosameh/bug/main/httpxpath.txt -O $wordlist
                     ;;
+                     "payloads.txt")
+                    wget https://raw.githubusercontent.com/abosameh/lfirecon/main/payloads.txt -O $wordlist
+                    ;;
                     
                     
                     
@@ -461,6 +471,11 @@ go_tools=(
     "github.com/edoardottt/Hackmanit/Web-Cache-Vulnerability-Scanner"
     "github.com/edoardottt/tomnomnom/gron"
     "github.com/dubs3c/urldedupe"
+    "github.com/projectdiscovery/uncover/cmd/uncover"
+    "github.com/mrco24/open-redirect"
+    "github.com/abosameh/lfirecon"
+    "github.com/detectify/page-fetch"
+    "github.com/behf/dnsgen"
 )
 
 go_binaries=(
@@ -507,6 +522,11 @@ go_binaries=(
     "Web-Cache-Vulnerability-Scanner"
     "gron"
     "urldedupe"
+    "uncover"
+    "open-redirect"
+    "lfirecon"
+    "page-fetch"
+    "dnsgen"
 )
 
 rust_tools=(
@@ -583,6 +603,7 @@ wordlists=(
     "$HOME/wordlists/xss-payloads.txt"
     "$HOME/wordlists/Open-Redirect-payloads.txt"
     "$HOME/wordlists/httpxpath.txt"
+    "$HOME/wordlists/payloads.txt"
    
 )
 
@@ -615,4 +636,4 @@ while true; do
             print_error "Invalid option"
             ;;
     esac
-done 
+done
